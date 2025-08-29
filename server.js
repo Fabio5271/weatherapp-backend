@@ -19,15 +19,19 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/weather', async (req, res) => {
-    const { q } = req.query;
-    if (!q) {
-        return res.status(400).json({ error: 'City query is required' });
+    const { q, lat, lon } = req.query;
+    if (!q && (!lat || !lon)) {
+        return res.status(400).json({ error: 'Either city query (q) or coordinates (lat, lon) are required' });
     }
 
     try {
-        const response = await axios.get(
-            `https://api.openweathermap.org/data/2.5/weather?q=${q}&units=metric&appid=${OWM_KEY}`
-        );
+        let url;
+        if (lat && lon) {
+            url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OWM_KEY}`;
+        } else {
+            url = `https://api.openweathermap.org/data/2.5/weather?q=${q}&units=metric&appid=${OWM_KEY}`;
+        }
+        const response = await axios.get(url);
         res.json(response.data);
     } catch (error) {
         console.error('Error fetching weather:', error.message);
