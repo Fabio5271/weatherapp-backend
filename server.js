@@ -16,7 +16,9 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
 const rateLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
     limit: 100
-})
+});
+
+app.set('trust proxy', 1);
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', `${ALLOWED_ORIGIN}`);
@@ -45,6 +47,10 @@ app.get('/api/weather', async (req, res) => {
         console.error('Error fetching weather:', error.message);
         res.status(500).json({ error: 'Failed to fetch weather data' });
     }
+});
+
+app.get('/ip', (request, response) => {
+	response.send(request.ip);
 });
 
 app.listen(PORT, () => {
