@@ -5,18 +5,26 @@
 
 // ES imports:
 import express from 'express';
+import {rateLimit} from 'express-rate-limit';
 import axios from 'axios';
 import 'dotenv/config';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const OWM_KEY = process.env.OWM_API_KEY;
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
+const rateLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    limit: 100
+})
 
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Origin', `${ALLOWED_ORIGIN}`);
     res.header('Access-Control-Allow-Methods', 'GET');
     next();
 });
+
+app.use(rateLimiter);
 
 app.get('/api/weather', async (req, res) => {
     const { q, lat, lon } = req.query;
