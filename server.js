@@ -5,30 +5,28 @@
 
 // ES imports:
 import express from 'express';
-import {rateLimit} from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import axios from 'axios';
+import cors from 'cors';
 import 'dotenv/config';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const OWM_KEY = process.env.OWM_API_KEY;
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
-const rateLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    limit: 100
-});
+
+const corsConfig = {
+    origin: ["http://localhost:8080", /https:\/\/fabio5271\.github\.io/],
+    methods: ['GET']
+};
 
 app.set('trust proxy', 1);
 
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', `${ALLOWED_ORIGIN}`);
-    res.header('Access-Control-Allow-Methods', 'GET');
-    next();
-});
+app.use(rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    limit: 100
+}));
 
-app.use(rateLimiter);
-
-app.get('/api/weather', async (req, res) => {
+app.get('/api/weather', cors(corsConfig), async (req, res) => {
     const { q, lat, lon } = req.query;
     if (!q && (!lat || !lon)) {
         return res.status(400).json({ error: 'Either city query (q) or coordinates (lat, lon) are required' });
@@ -50,7 +48,7 @@ app.get('/api/weather', async (req, res) => {
 });
 
 app.get('/ip', (request, response) => {
-	response.send(request.ip);
+    response.send(request.ip);
 });
 
 app.listen(PORT, () => {
